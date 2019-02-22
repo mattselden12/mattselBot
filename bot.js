@@ -183,7 +183,7 @@ class BasicBot {
                         // To learn more about Adaptive Cards, see https://aka.ms/msbot-adaptivecards for more details.
                         // const welcomeCard = CardFactory.adaptiveCard(WelcomeCard);
                         // await context.sendActivity({ attachments: [welcomeCard] });
-                        await context.sendActivity('Welcome to the Seattle Weather Bot! Ask me about the weather over the next 5 days.');
+                        await context.sendActivity('Welcome to the Seattle Weather Bot!  Ask me about the weather over the next 5 days.');
                         axios.get('http://api.openweathermap.org/data/2.5/weather?id=5809844&APPID=fe714b780e2777640d3e88a5e606ced4&q=')
                             .then(response => {
                                 weather = response['data'];
@@ -222,6 +222,27 @@ class BasicBot {
             var temp = Math.round((9/5)*(weather["main"]["temp"] - 273) + 32)
             await dc.context.sendActivity('The weather for today is showing that there should be ' + weather["weather"][0]["description"] + '.');
             await dc.context.sendActivity('The temperature should be around ' + temp + ' degrees fahrenheit.');
+            const reply = { type: ActivityTypes.Message };
+            if (weather["weather"][0]["main"] == "Clouds") {
+                reply.attachments = [{
+                    name: 'clouds',
+                    contentType: 'image/png',
+                    contentUrl: 'http://pngimages.net/sites/default/files/beautiful-cloud-png-image-24276.png'
+                }];
+            } else if (weather["weather"][0]["main"] == "Rain") {
+                reply.attachments = [{
+                    name: 'rain',
+                    contentType: 'image/png',
+                    contentUrl: 'http://pngimages.net/sites/default/files/rain-png-image-24401.png'
+                }];
+            } else if (weather["weather"][0]["main"] == "Clear") {
+                reply.attachments = [{
+                    name: 'clear',
+                    contentType: 'image/png',
+                    contentUrl: 'http://pngimages.net/sites/default/files/wear-png-image-9609.png'
+                }];
+            }
+            await dc.context.sendActivity(reply);
             return true;
         }
 
@@ -260,13 +281,38 @@ class BasicBot {
             var dformat = d.getFullYear() + "-" + month + "-" + day + " 12:00:00";
             var holder;
             for(var i = 0; i < forecast.length; i++){
+                console.log(dformat);
+                console.log(forecast[i]["dt_txt"]);
                 if(forecast[i]["dt_txt"] === dformat){
+                    console.log("MATCH");
                     holder = forecast[i];
                 }
             }
+            console.log(holder);
             var temp = Math.round((9 / 5) * (holder["main"]["temp"] - 273) + 32);
             await dc.context.sendActivity('The weather for ' + nameofday + ' is showing that there should be ' + holder["weather"][0]["description"] + '.');
             await dc.context.sendActivity('The temperature should be around ' + temp + ' degrees fahrenheit.');
+            const reply = { type: ActivityTypes.Message };
+            if (holder["weather"][0]["main"]=="Clouds"){
+                reply.attachments = [{
+                    name: 'clouds',
+                    contentType: 'image/png',
+                    contentUrl: 'http://pngimages.net/sites/default/files/beautiful-cloud-png-image-24276.png'
+                }];
+            } else if (holder["weather"][0]["main"] == "Rain"){
+                reply.attachments = [{
+                    name: 'rain',
+                    contentType: 'image/png',
+                    contentUrl: 'http://pngimages.net/sites/default/files/rain-png-image-24401.png'
+                }];
+            } else if (holder["weather"][0]["main"] == "Clear"){
+                reply.attachments = [{
+                    name: 'clear',
+                    contentType: 'image/png',
+                    contentUrl: 'http://pngimages.net/sites/default/files/wear-png-image-9609.png'
+                }];
+            }
+            await dc.context.sendActivity(reply);
             return true;
         }
 
@@ -284,7 +330,7 @@ class BasicBot {
 
         if (topIntent === HELP_INTENT) {
             await dc.context.sendActivity(`Let me try to provide some help.`);
-            await dc.context.sendActivity(`I can give you weather predictions for the next 5 days, just ask me using the name of the day!`);
+            await dc.context.sendActivity(`I can give you weather predictions for the next 5 days, just ask me the name of the day!`);
             await dc.context.sendActivity(`I also understand greetings, being asked for help, or being asked to cancel what I am doing.`);
             return true; // this is an interruption
         }
