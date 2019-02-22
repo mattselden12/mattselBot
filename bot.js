@@ -12,6 +12,11 @@ const { UserProfile } = require('./dialogs/greeting/userProfile');
 const { WelcomeCard } = require('./dialogs/welcome');
 const { GreetingDialog } = require('./dialogs/greeting');
 
+// My Variables
+const axios = require('axios');
+var weather;
+var forecast;
+
 // Greeting Dialog ID
 const GREETING_DIALOG = 'greetingDialog';
 
@@ -27,6 +32,8 @@ const GREETING_INTENT = 'Greeting';
 const CANCEL_INTENT = 'Cancel';
 const HELP_INTENT = 'Help';
 const NONE_INTENT = 'None';
+const TODAY_INTENT = 'WeatherToday';
+const FORECAST_INTENT = 'WeatherLater';
 
 // Supported LUIS Entities, defined in ./dialogs/greeting/resources/greeting.lu
 const USER_NAME_ENTITIES = ['userName', 'userName_patternAny'];
@@ -130,6 +137,9 @@ class BasicBot {
                     case DialogTurnStatus.empty:
                         // Determine what we should do based on the top intent from LUIS.
                         switch (topIntent) {
+                            // case FLIGHT_INTENT:
+                                // await dc.context.sendActivity('I will try to book your flight.')
+                                // break;
                             case GREETING_INTENT:
                                 await dc.beginDialog(GREETING_DIALOG);
                                 break;
@@ -171,8 +181,23 @@ class BasicBot {
                         // When activity type is "conversationUpdate" and the member joining the conversation is the bot
                         // we will send our Welcome Adaptive Card.  This will only be sent once, when the Bot joins conversation
                         // To learn more about Adaptive Cards, see https://aka.ms/msbot-adaptivecards for more details.
-                        const welcomeCard = CardFactory.adaptiveCard(WelcomeCard);
-                        await context.sendActivity({ attachments: [welcomeCard] });
+                        // const welcomeCard = CardFactory.adaptiveCard(WelcomeCard);
+                        // await context.sendActivity({ attachments: [welcomeCard] });
+                        await context.sendActivity('Welcome to the Seattle Weather Bot! Ask me about the weather over the next 5 days.');
+                        axios.get('http://api.openweathermap.org/data/2.5/weather?id=5809844&APPID=fe714b780e2777640d3e88a5e606ced4&q=')
+                            .then(response => {
+                                weather = response['data'];
+                            })
+                            .catch(error => {
+                                console.log(error);
+                            });
+                        axios.get('http://api.openweathermap.org/data/2.5/forecast?id=5809844&APPID=fe714b780e2777640d3e88a5e606ced4&q=')
+                            .then(response => {
+                                forecast = response['data']['list'];
+                            })
+                            .catch(error => {
+                                console.log(error);
+                            });
                     }
                 }
             }
@@ -193,8 +218,60 @@ class BasicBot {
     async isTurnInterrupted(dc, luisResults) {
         const topIntent = LuisRecognizer.topIntent(luisResults);
 
+        if (topIntent === TODAY_INTENT) {
+            var temp = Math.round((9/5)*(weather["main"]["temp"] - 273) + 32)
+            await dc.context.sendActivity('The weather for today is showing that there should be ' + weather["weather"][0]["description"] + '.');
+            await dc.context.sendActivity('The temperature should be around ' + temp + ' degrees fahrenheit.');
+            return true;
+        }
+
+        else if(topIntent === FORECAST_INTENT) {
+            var days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+            var entityData = String(luisResults.entities["datetime"][0]["timex"][0]);
+            if(entityData[0] == "X"){
+                var dayofweek = entityData[entityData.length-1];
+            } else{
+                var myDate = new Date(entityData);
+                var dayofweek = myDate.getDay() + 1;
+            }
+            var nameofday = days[dayofweek-1];
+            var d = new Date();
+            var difference;
+            var today = d.getDay();
+            if(today == 0){
+                today = 7;
+            }
+            if(dayofweek > today){
+                difference = dayofweek - today;
+            }
+            else{
+                difference = 7 - today + dayofweek;
+            }
+            d.setDate(d.getDate() + difference);
+            var month = parseInt(d.getMonth());
+            month = month + 1;
+            if(month < 10){
+                month = "0" + month;
+            }
+            var day = parseInt(d.getDate());
+            if (day < 10) {
+                day = "0" + day;
+            }
+            var dformat = d.getFullYear() + "-" + month + "-" + day + " 12:00:00";
+            var holder;
+            for(var i = 0; i < forecast.length; i++){
+                if(forecast[i]["dt_txt"] === dformat){
+                    holder = forecast[i];
+                }
+            }
+            var temp = Math.round((9 / 5) * (holder["main"]["temp"] - 273) + 32);
+            await dc.context.sendActivity('The weather for ' + nameofday + ' is showing that there should be ' + holder["weather"][0]["description"] + '.');
+            await dc.context.sendActivity('The temperature should be around ' + temp + ' degrees fahrenheit.');
+            return true;
+        }
+
         // see if there are anh conversation interrupts we need to handle
-        if (topIntent === CANCEL_INTENT) {
+        else if (topIntent === CANCEL_INTENT) {
             if (dc.activeDialog) {
                 // cancel all active dialog (clean the stack)
                 await dc.cancelAllDialogs();
@@ -207,9 +284,11 @@ class BasicBot {
 
         if (topIntent === HELP_INTENT) {
             await dc.context.sendActivity(`Let me try to provide some help.`);
-            await dc.context.sendActivity(`I understand greetings, being asked for help, or being asked to cancel what I am doing.`);
+            await dc.context.sendActivity(`I can give you weather predictions for the next 5 days, just ask me using the name of the day!`);
+            await dc.context.sendActivity(`I also understand greetings, being asked for help, or being asked to cancel what I am doing.`);
             return true; // this is an interruption
         }
+
         return false; // this is not an interruption
     }
 
