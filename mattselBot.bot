@@ -1,0 +1,50 @@
+{
+  "name": "mattselBot",
+  "padlock": "kZkXvjmFj2SoA07piSC9qA==!GlogxMihWXAiXhWurS8Zg3aqsr1OePUPxjBhSDmx/L5TukbahhrMwm2QhbqZWTcl",
+  "version": "2.0",
+  "services": [
+    {
+      "tenantId": "d8d48f1c-d8a3-400b-bc1f-6b421674dc7b",
+      "subscriptionId": "c64e6af1-9ef0-466f-863f-a4dbe65826df",
+      "resourceGroup": "MattsBots",
+      "serviceName": "mattselBot",
+      "type": "abs",
+      "name": "mattselBot",
+      "id": "1"
+    },
+    {
+      "connectionString": "EaVa9cADe9cCmfhiWz4a+Q==!Lzrw5+GWY0g1fk0pZAmB3Y1MARRZFJ/tLzkKTPD7eG3POYPp26Hm/lX76Qv3zR3bUbzJz8QKsf3zt/C+jWcc9PnRkugQYS04BeDzBj1D8UabOgI0YZHQr6+LVZSwyNh/JEaIwmFK/lg2ZD9izuoZa/ykRhWrzFW8zWX0zGrQmHVXfXwhhq6N813mLql+5yu022+rq/CGZymFtAbjW1Ni/A==",
+      "tenantId": "d8d48f1c-d8a3-400b-bc1f-6b421674dc7b",
+      "subscriptionId": "c64e6af1-9ef0-466f-863f-a4dbe65826df",
+      "resourceGroup": "MattsBots",
+      "serviceName": "mattselbota5c0",
+      "type": "blob",
+      "id": "2"
+    },
+    {
+      "appId": "",
+      "appPassword": "",
+      "endpoint": "http://localhost:3978/api/messages",
+      "type": "endpoint",
+      "name": "development",
+      "id": "3"
+    },
+    {
+      "appId": "67d0635a-c8e4-4c4d-8e01-7bf0f0f914b2",
+      "appPassword": "V/tiVauXGHgl7Uz/t7Nd3g==!G96NN6PFE6cwpmceo53/rIvvuesy+EKmieqap/ZxD+A=",
+      "endpoint": "https://mattselbot.azurewebsites.net/api/messages",
+      "type": "endpoint",
+      "name": "production",
+      "id": "4"
+    },
+    {
+      "appId": "aa078ff4-4188-4613-a67e-cda2fcd0bd15",
+      "authoringKey": "BmAx7zThnDpgdDEEZJfR+A==!e2+aDHpl97VnEe4XaReczLuwJwkP6kX7tHbNMbcOu+oXzjoFMq5lauJzZe7YMhsd",
+      "version": "0.1",
+      "region": "westus",
+      "type": "luis",
+      "name": "BasicBotLuisApplication",
+      "id": "5"
+    }
+  ]
+}
