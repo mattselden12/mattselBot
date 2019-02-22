@@ -239,7 +239,7 @@ class BasicBot {
                 reply.attachments = [{
                     name: 'clear',
                     contentType: 'image/png',
-                    contentUrl: 'http://pngimages.net/sites/default/files/wear-png-image-9609.png'
+                    contentUrl: 'http://pngimages.net/sites/default/files/hot-sun-png-image-24275.png'
                 }];
             }
             await dc.context.sendActivity(reply);
@@ -255,26 +255,36 @@ class BasicBot {
                 var myDate = new Date(entityData);
                 var dayofweek = myDate.getDay() + 1;
             }
+            dayofweek = parseInt(dayofweek);
             var nameofday = days[dayofweek-1];
             var d = new Date();
             var difference;
             var today = d.getDay();
+            console.log(today);
+            console.log(dayofweek)
             if(today == 0){
                 today = 7;
+                console.log('yes');
             }
             if(dayofweek > today){
                 difference = dayofweek - today;
+                console.log('a')
             }
             else{
+                console.log('b')
                 difference = 7 - today + dayofweek;
             }
-            d.setDate(d.getDate() + difference);
+            console.log(difference)
             var month = parseInt(d.getMonth());
             month = month + 1;
             if(month < 10){
                 month = "0" + month;
             }
-            var day = parseInt(d.getDate());
+            console.log(d.getDate());
+            console.log((parseInt(d.getDate())))
+            console.log(difference);
+            var datetoday = parseInt(d.getDate());
+            var day = datetoday + difference;
             if (day < 10) {
                 day = "0" + day;
             }
