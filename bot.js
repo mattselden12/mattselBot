@@ -260,29 +260,20 @@ class BasicBot {
             var d = new Date();
             var difference;
             var today = d.getDay();
-            console.log(today);
-            console.log(dayofweek)
             if(today == 0){
                 today = 7;
-                console.log('yes');
             }
             if(dayofweek > today){
                 difference = dayofweek - today;
-                console.log('a')
             }
             else{
-                console.log('b')
                 difference = 7 - today + dayofweek;
             }
-            console.log(difference)
             var month = parseInt(d.getMonth());
             month = month + 1;
             if(month < 10){
                 month = "0" + month;
             }
-            console.log(d.getDate());
-            console.log((parseInt(d.getDate())))
-            console.log(difference);
             var datetoday = parseInt(d.getDate());
             var day = datetoday + difference;
             if (day < 10) {
@@ -291,14 +282,10 @@ class BasicBot {
             var dformat = d.getFullYear() + "-" + month + "-" + day + " 12:00:00";
             var holder;
             for(var i = 0; i < forecast.length; i++){
-                console.log(dformat);
-                console.log(forecast[i]["dt_txt"]);
                 if(forecast[i]["dt_txt"] === dformat){
-                    console.log("MATCH");
                     holder = forecast[i];
                 }
             }
-            console.log(holder);
             var temp = Math.round((9 / 5) * (holder["main"]["temp"] - 273) + 32);
             await dc.context.sendActivity('The weather for ' + nameofday + ' is showing that there should be ' + holder["weather"][0]["description"] + '.');
             await dc.context.sendActivity('The temperature should be around ' + temp + ' degrees fahrenheit.');
