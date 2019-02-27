@@ -227,19 +227,19 @@ class BasicBot {
                 reply.attachments = [{
                     name: 'clouds',
                     contentType: 'image/png',
-                    contentUrl: 'http://pngimages.net/sites/default/files/beautiful-cloud-png-image-24276.png'
+                    contentUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/40/Draw_cloudy.png'
                 }];
             } else if (weather["weather"][0]["main"] == "Rain") {
                 reply.attachments = [{
                     name: 'rain',
                     contentType: 'image/png',
-                    contentUrl: 'http://pngimages.net/sites/default/files/rain-png-image-24401.png'
+                    contentUrl: 'https://banner2.kisspng.com/20180425/soq/kisspng-cloud-rain-sky-wikimedia-commons-clip-art-rain-clipart-5ae004a0b8c4f5.3191030515246306887568.jpg'
                 }];
             } else if (weather["weather"][0]["main"] == "Clear") {
                 reply.attachments = [{
                     name: 'clear',
                     contentType: 'image/png',
-                    contentUrl: 'http://pngimages.net/sites/default/files/hot-sun-png-image-24275.png'
+                    contentUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/92/Draw_sunny.png'
                 }];
             }
             await dc.context.sendActivity(reply);
@@ -294,19 +294,19 @@ class BasicBot {
                 reply.attachments = [{
                     name: 'clouds',
                     contentType: 'image/png',
-                    contentUrl: 'http://pngimages.net/sites/default/files/beautiful-cloud-png-image-24276.png'
+                    contentUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/40/Draw_cloudy.png'
                 }];
             } else if (holder["weather"][0]["main"] == "Rain"){
                 reply.attachments = [{
                     name: 'rain',
                     contentType: 'image/png',
-                    contentUrl: 'http://pngimages.net/sites/default/files/rain-png-image-24401.png'
+                    contentUrl: 'https://banner2.kisspng.com/20180425/soq/kisspng-cloud-rain-sky-wikimedia-commons-clip-art-rain-clipart-5ae004a0b8c4f5.3191030515246306887568.jpg'
                 }];
             } else if (holder["weather"][0]["main"] == "Clear"){
                 reply.attachments = [{
                     name: 'clear',
                     contentType: 'image/png',
-                    contentUrl: 'http://pngimages.net/sites/default/files/wear-png-image-9609.png'
+                    contentUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/92/Draw_sunny.png'
                 }];
             }
             await dc.context.sendActivity(reply);
