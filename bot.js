@@ -11,6 +11,7 @@ const { DialogSet, DialogTurnStatus } = require('botbuilder-dialogs');
 const { UserProfile } = require('./dialogs/greeting/userProfile');
 const { WelcomeCard } = require('./dialogs/welcome');
 const { GreetingDialog } = require('./dialogs/greeting');
+const moment = require('moment');
 
 // My Variables
 const axios = require('axios');
@@ -246,50 +247,39 @@ class BasicBot {
             return true;
         }
 
-        else if(topIntent === FORECAST_INTENT) {
-            var days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-            var entityData = String(luisResults.entities["datetime"][0]["timex"][0]);
-            if(entityData[0] == "X"){
-                var dayofweek = entityData[entityData.length-1];
+        else if (topIntent === FORECAST_INTENT) {
+            const m = moment();
+            const entityData = String(luisResults.entities["datetime"][0]["timex"][0]);
+            const todayofweek = m.format('d');
+            const todate = m.format('YYYY-MM-DD')
+            let entitydate;
+            if (entityData[0] == "X") {
+                let dayofweek = entityData[entityData.length-1];
+                let difference;
+                dayofweek = parseInt(dayofweek);
+                if (dayofweek > todayofweek) {
+                    difference = dayofweek - todayofweek;
+                } else{
+                    difference = 7 - todayofweek + dayofweek;
+                }
+                entitydate = m.add(difference, 'days');
+
             } else{
-                var myDate = new Date(entityData);
-                var dayofweek = myDate.getDay() + 1;
+                entitydate = moment(entityData);
             }
-            dayofweek = parseInt(dayofweek);
-            var nameofday = days[dayofweek-1];
-            var d = new Date();
-            var difference;
-            var today = d.getDay();
-            if(today == 0){
-                today = 7;
-            }
-            if(dayofweek > today){
-                difference = dayofweek - today;
-            }
-            else{
-                difference = 7 - today + dayofweek;
-            }
-            var month = parseInt(d.getMonth());
-            month = month + 1;
-            if(month < 10){
-                month = "0" + month;
-            }
-            var datetoday = parseInt(d.getDate());
-            var day = datetoday + difference;
-            if (day < 10) {
-                day = "0" + day;
-            }
-            var dformat = d.getFullYear() + "-" + month + "-" + day + " 12:00:00";
-            var holder;
-            for(var i = 0; i < forecast.length; i++){
+            let fentitydate = entitydate.format('YYYY-MM-DD');
+            const dformat = String(fentitydate) + " 12:00:00";
+            let holder;
+            for(let i = 0; i < forecast.length; i++){
                 if(forecast[i]["dt_txt"] === dformat){
                     holder = forecast[i];
                 }
             }
-            var temp = Math.round((9 / 5) * (holder["main"]["temp"] - 273) + 32);
+            let nameofday = entitydate.format('dddd');
+            let temp = Math.round((9 / 5) * (holder["main"]["temp"] - 273) + 32);
             await dc.context.sendActivity('The weather for ' + nameofday + ' is showing that there should be ' + holder["weather"][0]["description"] + '.');
             await dc.context.sendActivity('The temperature should be around ' + temp + ' degrees fahrenheit.');
-            const reply = { type: ActivityTypes.Message };
+            let reply = { type: ActivityTypes.Message };
             if (holder["weather"][0]["main"]=="Clouds"){
                 reply.attachments = [{
                     name: 'clouds',
