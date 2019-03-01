@@ -11,12 +11,18 @@ const { DialogSet, DialogTurnStatus } = require('botbuilder-dialogs');
 const { UserProfile } = require('./dialogs/greeting/userProfile');
 const { WelcomeCard } = require('./dialogs/welcome');
 const { GreetingDialog } = require('./dialogs/greeting');
-const moment = require('moment');
 
 // My Variables
 const axios = require('axios');
+const { creator, resolver } = require('@microsoft/recognizers-text-data-types-timex-expression');
 var weather;
 var forecast;
+
+//extend Date prototype
+Date.prototype.getDayName = function () {
+    var weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    return weekday[this.getDay()];
+}
 
 // Greeting Dialog ID
 const GREETING_DIALOG = 'greetingDialog';
@@ -184,21 +190,21 @@ class BasicBot {
                         // To learn more about Adaptive Cards, see https://aka.ms/msbot-adaptivecards for more details.
                         // const welcomeCard = CardFactory.adaptiveCard(WelcomeCard);
                         // await context.sendActivity({ attachments: [welcomeCard] });
-                        await context.sendActivity('Welcome to the Seattle Weather Bot!  Ask me about the weather over the next 5 days.');
-                        axios.get('http://api.openweathermap.org/data/2.5/weather?id=5809844&APPID=fe714b780e2777640d3e88a5e606ced4&q=')
+                        axios.get('https://api.openweathermap.org/data/2.5/weather?id=5809844&APPID=fe714b780e2777640d3e88a5e606ced4&q=')
                             .then(response => {
                                 weather = response['data'];
+                                axios.get('https://api.openweathermap.org/data/2.5/forecast?id=5809844&APPID=fe714b780e2777640d3e88a5e606ced4&q=')
+                                    .then(response => {
+                                        forecast = response['data']['list'];
+                                    })
+                                    .catch(error => {
+                                        console.log(error);
+                                    });
                             })
                             .catch(error => {
                                 console.log(error);
                             });
-                        axios.get('http://api.openweathermap.org/data/2.5/forecast?id=5809844&APPID=fe714b780e2777640d3e88a5e606ced4&q=')
-                            .then(response => {
-                                forecast = response['data']['list'];
-                            })
-                            .catch(error => {
-                                console.log(error);
-                            });
+                        await context.sendActivity('Welcome to the Seattle Weather Bot!  Ask me about the weather over the next 5 days.');
                     }
                 }
             }
@@ -220,8 +226,8 @@ class BasicBot {
         const topIntent = LuisRecognizer.topIntent(luisResults);
 
         if (topIntent === TODAY_INTENT) {
-            var temp = Math.round((9/5)*(weather["main"]["temp"] - 273) + 32)
             await dc.context.sendActivity('The weather for today is showing that there should be ' + weather["weather"][0]["description"] + '.');
+            let temp = Math.round((9/5)*(weather["main"]["temp"] - 273) + 32)
             await dc.context.sendActivity('The temperature should be around ' + temp + ' degrees fahrenheit.');
             const reply = { type: ActivityTypes.Message };
             if (weather["weather"][0]["main"] == "Clouds") {
@@ -248,36 +254,22 @@ class BasicBot {
         }
 
         else if (topIntent === FORECAST_INTENT) {
-            const m = moment();
-            const entityData = String(luisResults.entities["datetime"][0]["timex"][0]);
-            const todayofweek = m.format('d');
-            const todate = m.format('YYYY-MM-DD')
-            let entitydate;
-            if (entityData[0] == "X") {
-                let dayofweek = entityData[entityData.length-1];
-                let difference;
-                dayofweek = parseInt(dayofweek);
-                if (dayofweek > todayofweek) {
-                    difference = dayofweek - todayofweek;
-                } else{
-                    difference = 7 - todayofweek + dayofweek;
-                }
-                entitydate = m.add(difference, 'days');
-
-            } else{
-                entitydate = moment(entityData);
-            }
-            let fentitydate = entitydate.format('YYYY-MM-DD');
-            const dformat = String(fentitydate) + " 12:00:00";
+            let entityData = String(luisResults.entities["datetime"][0]["timex"][0]);
+            const resolutions = resolver.evaluate(
+                [entityData], [creator.weekFromToday()]
+            );
+            resolutions.forEach(resolution => {
+                entityData = new Date(resolution.year, resolution.month - 1, resolution.dayOfMonth, 12, 0, 0, 0);
+            });
             let holder;
             for(let i = 0; i < forecast.length; i++){
-                if(forecast[i]["dt_txt"] === dformat){
+                var tempdate = new Date(forecast[i]["dt_txt"])
+                if(tempdate.getTime() === entityData.getTime()){
                     holder = forecast[i];
                 }
             }
-            let nameofday = entitydate.format('dddd');
+            await dc.context.sendActivity('The weather for ' + entityData.getDayName() + ' is showing that there should be ' + holder["weather"][0]["description"] + '.');
             let temp = Math.round((9 / 5) * (holder["main"]["temp"] - 273) + 32);
-            await dc.context.sendActivity('The weather for ' + nameofday + ' is showing that there should be ' + holder["weather"][0]["description"] + '.');
             await dc.context.sendActivity('The temperature should be around ' + temp + ' degrees fahrenheit.');
             let reply = { type: ActivityTypes.Message };
             if (holder["weather"][0]["main"]=="Clouds"){
