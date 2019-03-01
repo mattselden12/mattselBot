@@ -190,20 +190,10 @@ class BasicBot {
                         // To learn more about Adaptive Cards, see https://aka.ms/msbot-adaptivecards for more details.
                         // const welcomeCard = CardFactory.adaptiveCard(WelcomeCard);
                         // await context.sendActivity({ attachments: [welcomeCard] });
-                        axios.get('https://api.openweathermap.org/data/2.5/weather?id=5809844&APPID=fe714b780e2777640d3e88a5e606ced4&q=')
-                            .then(response => {
-                                weather = response['data'];
-                                axios.get('https://api.openweathermap.org/data/2.5/forecast?id=5809844&APPID=fe714b780e2777640d3e88a5e606ced4&q=')
-                                    .then(response => {
-                                        forecast = response['data']['list'];
-                                    })
-                                    .catch(error => {
-                                        console.log(error);
-                                    });
-                            })
-                            .catch(error => {
-                                console.log(error);
-                            });
+                        let returnval = await axios.get('https://api.openweathermap.org/data/2.5/weather?id=5809844&APPID=fe714b780e2777640d3e88a5e606ced4&q=');
+                        weather = returnval['data'];
+                        returnval = await axios.get('https://api.openweathermap.org/data/2.5/forecast?id=5809844&APPID=fe714b780e2777640d3e88a5e606ced4&q=');
+                        forecast = returnval['data']['list'];
                         await context.sendActivity('Welcome to the Seattle Weather Bot!  Ask me about the weather over the next 5 days.');
                     }
                 }
@@ -226,8 +216,8 @@ class BasicBot {
         const topIntent = LuisRecognizer.topIntent(luisResults);
 
         if (topIntent === TODAY_INTENT) {
-            await dc.context.sendActivity('The weather for today is showing that there should be ' + weather["weather"][0]["description"] + '.');
             let temp = Math.round((9/5)*(weather["main"]["temp"] - 273) + 32)
+            await dc.context.sendActivity('The weather for today is showing that there should be ' + weather["weather"][0]["description"] + '.');
             await dc.context.sendActivity('The temperature should be around ' + temp + ' degrees fahrenheit.');
             const reply = { type: ActivityTypes.Message };
             if (weather["weather"][0]["main"] == "Clouds") {
@@ -240,7 +230,7 @@ class BasicBot {
                 reply.attachments = [{
                     name: 'rain',
                     contentType: 'image/png',
-                    contentUrl: 'https://banner2.kisspng.com/20180425/soq/kisspng-cloud-rain-sky-wikimedia-commons-clip-art-rain-clipart-5ae004a0b8c4f5.3191030515246306887568.jpg'
+                    contentUrl: 'https://www.seekpng.com/png/detail/181-1815963_rain-emoji-png-png-stock-cloud-rain-clipart.png'
                 }];
             } else if (weather["weather"][0]["main"] == "Clear") {
                 reply.attachments = [{
@@ -262,36 +252,47 @@ class BasicBot {
                 entityData = new Date(resolution.year, resolution.month - 1, resolution.dayOfMonth, 12, 0, 0, 0);
             });
             let holder;
-            for(let i = 0; i < forecast.length; i++){
-                var tempdate = new Date(forecast[i]["dt_txt"])
-                if(tempdate.getTime() === entityData.getTime()){
-                    holder = forecast[i];
+            if(entityData instanceof Date){
+                for(let i = 0; i < forecast.length; i++){
+                    var tempdate = new Date(forecast[i]["dt_txt"])
+                    if(tempdate.getTime() === entityData.getTime()){
+                        holder = forecast[i];
+                    }
                 }
             }
-            await dc.context.sendActivity('The weather for ' + entityData.getDayName() + ' is showing that there should be ' + holder["weather"][0]["description"] + '.');
-            let temp = Math.round((9 / 5) * (holder["main"]["temp"] - 273) + 32);
-            await dc.context.sendActivity('The temperature should be around ' + temp + ' degrees fahrenheit.');
-            let reply = { type: ActivityTypes.Message };
-            if (holder["weather"][0]["main"]=="Clouds"){
-                reply.attachments = [{
-                    name: 'clouds',
-                    contentType: 'image/png',
-                    contentUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/40/Draw_cloudy.png'
-                }];
-            } else if (holder["weather"][0]["main"] == "Rain"){
-                reply.attachments = [{
-                    name: 'rain',
-                    contentType: 'image/png',
-                    contentUrl: 'https://banner2.kisspng.com/20180425/soq/kisspng-cloud-rain-sky-wikimedia-commons-clip-art-rain-clipart-5ae004a0b8c4f5.3191030515246306887568.jpg'
-                }];
-            } else if (holder["weather"][0]["main"] == "Clear"){
-                reply.attachments = [{
-                    name: 'clear',
-                    contentType: 'image/png',
-                    contentUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/92/Draw_sunny.png'
-                }];
+            else{
+                await dc.context.sendActivity('Sorry, I can only give you the weather for the next 5 days.');
+                return true;
             }
-            await dc.context.sendActivity(reply);
+            if(holder){
+                let temp = Math.round((9 / 5) * (holder["main"]["temp"] - 273) + 32);
+                await dc.context.sendActivity('The weather for ' + entityData.getDayName() + ' is showing that there should be ' + holder["weather"][0]["description"] + '.');
+                await dc.context.sendActivity('The temperature should be around ' + temp + ' degrees fahrenheit.');
+                let reply = { type: ActivityTypes.Message };
+                if (holder["weather"][0]["main"]=="Clouds"){
+                    reply.attachments = [{
+                        name: 'clouds',
+                        contentType: 'image/png',
+                        contentUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/40/Draw_cloudy.png'
+                    }];
+                } else if (holder["weather"][0]["main"] == "Rain"){
+                    reply.attachments = [{
+                        name: 'rain',
+                        contentType: 'image/png',
+                        contentUrl: 'https://www.seekpng.com/png/detail/181-1815963_rain-emoji-png-png-stock-cloud-rain-clipart.png'
+                    }];
+                } else if (holder["weather"][0]["main"] == "Clear"){
+                    reply.attachments = [{
+                        name: 'clear',
+                        contentType: 'image/png',
+                        contentUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/92/Draw_sunny.png'
+                    }];
+                }
+                await dc.context.sendActivity(reply);
+            }
+            else{
+                await dc.context.sendActivity('Sorry, I can only give you the weather for the next 5 days.');
+            }
             return true;
         }
 
